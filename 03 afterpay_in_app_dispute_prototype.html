@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Afterpay In-App Dispute Prototype</title>
+<style>
+:root{
+  --ink:#0b0b0c; --muted:#68686d; --line:#e8e8e8; --soft:#f7f7f7;
+  --mint:#b8f7e8; --mint2:#9ef2df; --green:#12bf98; --white:#fff;
+  --radius:16px; --shadow:0 1px 0 rgba(0,0,0,.03);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f2f2f2;color:var(--ink);font-family:Inter,Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+.stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px}
+.phone{width:390px;min-height:800px;background:#fff;border:1px solid #dedede;border-radius:28px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.08);position:relative}
+.status{height:46px;padding:14px 24px 0;font-weight:700;font-size:14px;display:flex;justify-content:space-between}
+.screen{display:none;padding:10px 20px 28px;min-height:754px}.screen.active{display:block}
+.topbar{display:flex;align-items:center;gap:8px;height:40px;font-size:13px;font-weight:700}
+.back,.close{border:0;background:none;font-size:27px;line-height:1;padding:0;cursor:pointer}.close{margin-left:auto}
+h1{font-size:23px;line-height:1.2;margin:16px 0 8px;letter-spacing:-.5px}
+h2{font-size:17px;margin:22px 0 10px} p{font-size:14px;line-height:1.5;margin:7px 0;color:#27272a}
+.small{font-size:12px;color:var(--muted)} .muted{color:var(--muted)}
+.card{border:1px solid var(--line);border-radius:13px;padding:15px;margin:10px 0;background:#fff;box-shadow:var(--shadow)}
+.purchase{cursor:pointer;display:flex;align-items:center;gap:12px}.purchase:hover{background:#fafafa}
+.thumb{width:52px;height:52px;border-radius:10px;background:#f2f2f2;display:grid;place-items:center;font-size:24px;flex:0 0 auto}
+.grow{flex:1}.price{font-weight:750}.merchant{font-weight:750;font-size:15px}.chev{font-size:22px}
+.btn{width:100%;height:48px;border-radius:9px;border:1px solid #111;background:#000;color:#fff;font-weight:750;font-size:14px;cursor:pointer;margin-top:12px}
+.btn.secondary{background:#fff;color:#111}.btn.mint{border:0;background:linear-gradient(90deg,var(--mint),var(--mint2));color:#111}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.hero{margin:-10px -20px 0;padding:26px 20px 30px;text-align:center;background:linear-gradient(135deg,#b8f7e8,#92f0dc)}
+.hero .check{width:58px;height:58px;border-radius:50%;background:#000;color:#fff;margin:0 auto 14px;display:grid;place-items:center;font-size:31px}
+.step{display:flex;gap:12px;margin:16px 0}.stepno{width:30px;height:30px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-weight:750;flex:0 0 auto}
+.merchantbox{background:linear-gradient(135deg,#b8f7e8,#9df2df);border-radius:12px;padding:16px;margin:16px 0}
+.merchantrow{display:flex;gap:13px;align-items:center}.phoneicon{width:48px;height:48px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-size:23px}
+.field{margin:13px 0}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:7px}
+input,select,textarea{width:100%;padding:13px;border:1px solid #d8d8d8;border-radius:9px;font:inherit;background:#fff}
+.upload{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:13px 0}.upload:last-child{border-bottom:0}
+.plus{font-size:24px;cursor:pointer}.tag{background:#efefef;border-radius:20px;padding:5px 9px;font-size:11px}
+.ticket,.estimate{background:linear-gradient(90deg,var(--mint),var(--mint2));border-radius:9px;padding:14px;font-weight:750;font-size:18px;margin:8px 0 22px}
+.progress{margin-top:15px}.progress-row{display:flex;gap:13px;min-height:62px}.dotcol{width:25px;display:flex;align-items:center;flex-direction:column}.dot{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#ddd;color:white;font-size:13px}.dot.done{background:var(--green)}.dot.current{background:#fff;border:2px solid var(--green)}.line{width:2px;flex:1;background:#ddd}.line.done{background:var(--green)}
+.notice{border:1px solid var(--line);border-radius:12px;padding:13px;margin:14px 0}
+.divider{height:1px;background:var(--line);margin:16px 0}
+.link{font-weight:700;text-decoration:underline;cursor:pointer}
+.debug{position:fixed;bottom:12px;right:12px;background:#111;color:#fff;border-radius:999px;padding:8px 12px;font-size:11px;opacity:.7}
+@media(max-width:430px){.stage{padding:0}.phone{width:100%;min-height:100vh;border:0;border-radius:0}.screen{min-height:calc(100vh - 46px)}.debug{display:none}}
+</style>
+</head>
+<body>
+<div class="stage"><div class="phone">
+  <div class="status"><span>9:41</span><span>▮▮▮ ◉ ▰</span></div>
+
+  <section class="screen active" id="purchases">
+    <div class="topbar"><button class="back">‹</button><span>Purchases</span><button class="close">×</button></div>
+    <h1>Your purchases</h1><p class="muted">Select a purchase to view its details or request help.</p>
+    <div class="card purchase" onclick="selectPurchase('Temple & Webster','$105.00','Order #12345678','28 August 2020')">
+      <div class="thumb">▤</div><div class="grow"><div class="merchant">Temple & Webster</div><div class="small">28 Aug 2020 · Order #12345678</div><div class="small">Home & living</div></div><div class="price">$105.00</div><div class="chev">›</div>
+    </div>
+    <div class="card purchase" onclick="selectPurchase('The Iconic','$84.95','Order #88421731','03 September 2026')">
+      <div class="thumb">▣</div><div class="grow"><div class="merchant">The Iconic</div><div class="small">03 Sep 2026 · Order #88421731</div><div class="small">Clothing</div></div><div class="price">$84.95</div><div class="chev">›</div>
+    </div>
+    <div class="card purchase" onclick="selectPurchase('JB Hi-Fi','$249.00','Order #70218519','30 August 2026')">
+      <div class="thumb">♫</div><div class="grow"><div class="merchant">JB Hi-Fi</div><div class="small">30 Aug 2026 · Order #70218519</div><div class="small">Electronics</div></div><div class="price">$249.00</div><div class="chev">›</div>
+    </div>
+  </section>
+
+  <section class="screen" id="detail">
+    <div class="topbar"><button class="back" onclick="go('purchases')">‹</button><span>Purchase details</span><button class="close">×</button></div>
+    <h1 id="dMerchant">Temple & Webster</h1>
+    <div class="card"><div style="display:flex;justify-content:space-between"><div><b id="dOrder">Order #12345678</b><div class="small" id="dDate">28 August 2020</div></div><div class="price" id="dPrice">$105.00</div></div></div>
+    <h2>Need help with this purchase?</h2>
+    <p>If you haven't received your refund or there is a problem with this transaction, you can start the dispute process.</p>
+    <button class="btn mint" onclick="go('summary')">Request a dispute</button>
+  </section>
+
+  <section class="screen" id="summary">
+    <div class="topbar"><button class="back" onclick="go('detail')">‹</button><span>Raise a dispute</span><button class="close">×</button></div>
+    <h1>How to request a dispute</h1><p>Before Afterpay reviews a dispute, please try to resolve the issue directly with the merchant.</p>
+    <div class="step"><div class="stepno">1</div><div><b>Contact the merchant first</b><p class="small">Ask the merchant to resolve your refund or transaction issue.</p></div></div>
+    <div class="step"><div class="stepno">2</div><div><b>Allow the merchant time to respond</b><p class="small">If the merchant is unresponsive or has provided no update for more than 10 days, you can continue.</p></div></div>
+    <div class="step"><div class="stepno">3</div><div><b>Submit transaction details</b><p class="small">Provide your order details and supporting documents for review.</p></div></div>
+    <div class="step"><div class="stepno">4</div><div><b>Track your refund status</b><p class="small">After submission, follow progress from the app.</p></div></div>
+    <button class="btn mint" onclick="go('merchant')">Continue</button>
+  </section>
+
+  <section class="screen" id="merchant">
+    <div class="topbar"><button class="back" onclick="go('summary')">‹</button><span>Need more help?</span><button class="close">×</button></div>
+    <h1>Contact the merchant</h1><p>Please contact the vendor or merchant first to resolve your refund. Most refunds are completed at this stage.</p>
+    <div class="merchantbox"><div class="merchantrow"><div class="phoneicon">☎</div><div><div class="merchant" id="mMerchant">Temple & Webster</div><div class="small">1300 123 456</div><div class="small">Mon – Fri, 9am – 5pm AEST</div></div></div>
+      <button class="btn">☎ &nbsp; Call merchant</button><button class="btn secondary">✉ &nbsp; Email merchant</button>
+    </div>
+    <h2>Already contacted the merchant?</h2><p>If the issue isn't resolved, you can raise a dispute with Afterpay.</p>
+    <div class="notice"><label style="display:flex;gap:10px"><input id="tenDays" type="checkbox" style="width:auto" onchange="toggleProceed()"><span><b>It has been more than 10 days</b><br><span class="small">The merchant has not responded or provided a meaningful update.</span></span></label></div>
+    <button id="proceed" class="btn mint" disabled onclick="go('submit')">Submit transaction details</button>
+  </section>
+
+  <section class="screen" id="submit">
+    <div class="topbar"><button class="back" onclick="go('merchant')">‹</button><span>Raise a dispute</span><button class="close">×</button></div>
+    <h1>Submit transaction details</h1><p>To help us validate your dispute, please provide the following information and documents.</p>
+    <h2>Order details</h2><div class="card"><div style="display:flex;justify-content:space-between"><div><b id="sOrder">Order #12345678</b><div class="small" id="sMerchant">Temple & Webster</div><div class="small" id="sDate">28 August 2020</div></div><div class="price" id="sPrice">$105.00</div></div></div>
+    <div class="field"><label>Reason for dispute</label><select><option>Refund not received</option><option>Goods not received</option><option>Incorrect or damaged goods</option><option>Other</option></select></div>
+    <h2>Upload documents</h2><div class="card">
+      <div class="upload"><div><b>Invoice or receipt</b><div class="small">Required</div></div><span class="plus" onclick="fakeUpload(this)">＋</span></div>
+      <div class="upload"><div><b>Merchant correspondence</b><div class="small">Required</div></div><span class="plus" onclick="fakeUpload(this)">＋</span></div>
+      <div class="upload"><div><b>Additional information</b><div class="small">Optional</div></div><span class="plus" onclick="fakeUpload(this)">＋</span></div>
+    </div>
+    <p class="small">🔒 Your information is secure and will only be used to review your dispute.</p>
+    <button class="btn" onclick="go('submitted')">Submit dispute</button>
+  </section>
+
+  <section class="screen" id="submitted">
+    <div class="hero"><button class="close">×</button><div class="check">✓</div><h1>Dispute submitted!</h1><p>We've received your dispute and our team will review it shortly.</p></div>
+    <h2>Your ticket number</h2><div class="ticket">▱ &nbsp; DIS-2026-000123</div>
+    <h2>What happens next?</h2><p>We'll review your case and work with the merchant to resolve it.</p>
+    <h2>Estimated review time</h2><div class="estimate">▣ &nbsp; 5 – 10 working days</div><p>We'll notify you in the app and via email once there's an update.</p>
+    <button class="btn" onclick="go('status')">View refund status</button><button class="btn secondary" onclick="go('purchases')">Back to purchases</button>
+  </section>
+
+  <section class="screen" id="status">
+    <div class="topbar"><button class="back" onclick="go('submitted')">‹</button><span>Refund status</span><button class="close">×</button></div>
+    <h1>Refund status</h1><div class="small" id="rOrder">Order #12345678</div><div class="merchant" id="rMerchant">Temple & Webster</div><div class="small" id="rDate">28 August 2020</div>
+    <div class="divider"></div><h2>Refund progress</h2>
+    <div class="progress">
+      <div class="progress-row"><div class="dotcol"><div class="dot done">✓</div><div class="line done"></div></div><div><b>Dispute submitted</b><div class="small">10 Sep 2026, 9:41pm</div></div></div>
+      <div class="progress-row"><div class="dotcol"><div class="dot current"></div><div class="line"></div></div><div><b>Under review</b><div class="small">We're reviewing your case and supporting documents.</div></div></div>
+      <div class="progress-row"><div class="dotcol"><div class="dot">✓</div><div class="line"></div></div><div><b>Merchant response</b><div class="small">Pending</div></div></div>
+      <div class="progress-row"><div class="dotcol"><div class="dot">✓</div></div><div><b>Refund completed</b><div class="small">You'll be notified once completed.</div></div></div>
+    </div>
+    <div class="notice"><b>Need more help?</b><p class="small">Your dispute is already in progress. We'll notify you when its status changes.</p></div>
+    <button class="btn secondary" onclick="go('purchases')">Back to purchases</button>
+  </section>
+</div></div>
+<div class="debug">Interactive prototype · click purchases to begin</div>
+<script>
+let purchase={merchant:'Temple & Webster',price:'$105.00',order:'Order #12345678',date:'28 August 2020'};
+function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+function selectPurchase(merchant,price,order,date){purchase={merchant,price,order,date}; sync();go('detail')}
+function sync(){
+ ['dMerchant','mMerchant','sMerchant','rMerchant'].forEach(id=>document.getElementById(id).textContent=purchase.merchant);
+ ['dPrice','sPrice'].forEach(id=>document.getElementById(id).textContent=purchase.price);
+ ['dOrder','sOrder','rOrder'].forEach(id=>document.getElementById(id).textContent=purchase.order);
+ ['dDate','sDate','rDate'].forEach(id=>document.getElementById(id).textContent=purchase.date);
+}
+function toggleProceed(){document.getElementById('proceed').disabled=!document.getElementById('tenDays').checked}
+function fakeUpload(el){el.textContent='✓';el.className='tag';el.innerText='Attached ✓'}
+</script>
+</body></html>

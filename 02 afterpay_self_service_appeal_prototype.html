@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Afterpay Appeal Prototype</title>
+<style>
+  :root{
+    --bg:#f8fbfa;
+    --surface:#ffffff;
+    --mint:#b7f7df;
+    --mint-2:#dffaf0;
+    --mint-3:#effcf7;
+    --ink:#111111;
+    --muted:#666a68;
+    --line:#e7ece9;
+    --danger:#d92d20;
+    --warning:#f4b942;
+    --success:#2f9d78;
+    --shadow:0 8px 28px rgba(17,17,17,.08);
+    --radius-xl:26px;
+    --radius-lg:20px;
+    --radius-md:15px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#edfdf7 0%,#f7faf9 42%,#f5f7f6 100%);
+    font-family:Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    color:var(--ink);
+  }
+  .shell{max-width:1180px;margin:0 auto;padding:28px 18px 42px}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:22px
+  }
+  .brandmark{
+    width:34px;height:22px;border:3px solid var(--ink);border-radius:9px;transform:skewX(-14deg);
+    position:relative
+  }
+  .brandmark:after{
+    content:"";position:absolute;width:9px;height:9px;border:3px solid var(--ink);border-radius:50%;
+    right:-7px;top:3px;background:var(--mint)
+  }
+  .mode-switch{
+    display:flex;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:var(--shadow)
+  }
+  .mode-switch button{
+    border:0;background:transparent;padding:10px 15px;border-radius:999px;font-weight:700;cursor:pointer;color:#4d5551
+  }
+  .mode-switch button.active{background:#111;color:#fff}
+  .prototype-grid{
+    display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:26px;align-items:start
+  }
+  .phone{
+    width:100%;max-width:390px;min-height:780px;background:#fff;border-radius:34px;padding:14px 12px 18px;
+    box-shadow:0 22px 70px rgba(17,17,17,.16);border:1px solid rgba(17,17,17,.06);position:sticky;top:18px
+  }
+  .statusbar{display:flex;justify-content:space-between;padding:3px 10px 14px;font-weight:700;font-size:12px}
+  .apphead{display:flex;align-items:center;justify-content:space-between;padding:8px 6px 16px}
+  .back{border:0;background:transparent;font-size:28px;line-height:1;cursor:pointer;padding:0 6px}
+  .apptitle{font-weight:800;font-size:14px}
+  .ghost{width:34px}
+  .screen{display:none;animation:fade .18s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+  h1{font-size:26px;line-height:1.05;letter-spacing:-.045em;margin:8px 4px 10px}
+  h2{font-size:18px;letter-spacing:-.025em;margin:0 0 9px}
+  p{font-size:14px;line-height:1.5;color:#333;margin:0}
+  .muted{color:var(--muted)}
+  .hero-card{
+    background:linear-gradient(135deg,#d9fbef 0%,#f9fffc 100%);border-radius:24px;padding:18px;margin:4px 2px 14px;
+    border:1px solid #e3f4ed
+  }
+  .hero-icon{width:70px;height:70px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:14px}
+  .menu-card,.card{
+    background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin:10px 2px
+  }
+  .menu-card{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .menu-card .left{display:flex;gap:12px;align-items:center}
+  .icon{
+    width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--mint-2);font-size:18px
+  }
+  .label{font-weight:760;font-size:14px}
+  .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .btn{
+    width:100%;border:0;background:#111;color:white;border-radius:14px;padding:15px 16px;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px
+  }
+  .btn.secondary{background:#fff;color:#111;border:1px solid #111}
+  .btn.soft{background:var(--mint-2);color:#111}
+  .field{margin:13px 2px}
+  label{display:block;font-size:12px;font-weight:800;margin-bottom:7px}
+  input,select,textarea{
+    width:100%;border:1px solid #dce3df;border-radius:14px;padding:14px 13px;font:inherit;background:#fff;outline:none
+  }
+  textarea{min-height:105px;resize:vertical}
+  input:focus,select:focus,textarea:focus{border-color:#72cfad;box-shadow:0 0 0 3px rgba(114,207,173,.14)}
+  .upload{
+    border:1.5px dashed #9bd7c2;background:#f6fffb;border-radius:18px;padding:25px 15px;text-align:center;margin:12px 2px
+  }
+  .upload strong{display:block;margin:9px 0 5px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .chip{padding:8px 10px;border-radius:11px;background:#f1f4f2;border:1px solid #e6ebe8;font-size:12px;font-weight:700}
+  .notice{background:var(--mint-3);border:1px solid #daf0e7;border-radius:16px;padding:13px;margin:12px 2px;font-size:12px;line-height:1.45}
+  .review-row{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .review-row:last-child{border-bottom:0}
+  .review-k{font-size:12px;color:var(--muted)}
+  .review-v{font-size:13px;font-weight:700;text-align:right}
+  .success-wrap{text-align:center;padding:35px 8px 10px}
+  .check{
+    width:86px;height:86px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:44px;margin:20px auto 28px
+  }
+  .ticket{font-size:22px;font-weight:900;letter-spacing:.02em;margin-top:5px}
+  .timeline{position:relative;padding-left:28px;margin:18px 4px}
+  .timeline:before{
+    content:"";position:absolute;left:9px;top:10px;bottom:8px;width:2px;background:#dce6e1
+  }
+  .step{position:relative;padding:0 0 24px 14px}
+  .step:last-child{padding-bottom:5px}
+  .dot{
+    position:absolute;left:-28px;top:1px;width:18px;height:18px;border-radius:50%;background:#e8eeeb;border:4px solid #fff;box-shadow:0 0 0 1px #d7e0dc
+  }
+  .step.done .dot,.step.current .dot{background:var(--success)}
+  .step.current .dot{box-shadow:0 0 0 4px #d8f5e9}
+  .step-title{font-size:14px;font-weight:800}
+  .step-meta{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35}
+  .status-pill{
+    display:inline-block;padding:7px 10px;border-radius:999px;background:#def8ec;color:#1f7e60;font-size:12px;font-weight:800;margin:8px 0 2px
+  }
+  .bottomnav{
+    margin-top:20px;border-top:1px solid #edf0ee;padding:12px 8px 0;display:grid;grid-template-columns:repeat(3,1fr);text-align:center;font-size:10px;font-weight:700;color:#555
+  }
+  .navitem.active{background:var(--mint);border-radius:14px;padding:8px 4px;color:#111}
+  .navitem{padding:8px 4px}
+  .workspace{
+    background:rgba(255,255,255,.78);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.9);border-radius:28px;
+    padding:26px;box-shadow:var(--shadow)
+  }
+  .workspace h3{font-size:24px;letter-spacing:-.04em;margin:0 0 8px}
+  .workspace > p{color:#59615d;max-width:690px}
+  .flow-list{display:grid;gap:10px;margin-top:22px}
+  .flow-item{
+    display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px 15px
+  }
+  .num{width:28px;height:28px;flex:0 0 28px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}
+  .flow-item strong{display:block;font-size:13px;margin-bottom:3px}
+  .flow-item span{font-size:12px;color:#666;line-height:1.45}
+  .design-note{margin-top:18px;background:#e9fbf4;border:1px solid #d6f3e7;border-radius:16px;padding:14px;font-size:12px;line-height:1.55}
+  .screen-map{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .screen-map button{
+    border:1px solid #dfe7e3;background:#fff;border-radius:11px;padding:9px 10px;font-size:12px;font-weight:700;cursor:pointer
+  }
+  .screen-map button.active{background:#111;color:#fff;border-color:#111}
+  .file-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;margin-top:8px}
+  .file-thumb{width:42px;height:42px;border-radius:8px;background:#f0f2f1;display:flex;align-items:center;justify-content:center}
+  @media(max-width:850px){
+    .prototype-grid{grid-template-columns:1fr}
+    .phone{position:relative;top:auto;margin:0 auto}
+    .workspace{order:-1}
+    .topbar{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand"><span class="brandmark"></span> afterpay appeal prototype</div>
+    <div class="mode-switch">
+      <button id="appealModeBtn" class="active" onclick="setMode('appeal')">File an appeal</button>
+      <button id="statusModeBtn" onclick="setMode('status')">Track appeal</button>
+    </div>
+  </div>
+
+  <div class="prototype-grid">
+    <div class="phone">
+      <div class="statusbar"><span>1:47</span><span>▮▮ 5G 🔋</span></div>
+      <div class="apphead">
+        <button class="back" id="backBtn" onclick="goBack()">‹</button>
+        <div class="apptitle" id="appTitle">Appeal account freeze</div>
+        <div class="ghost"></div>
+      </div>
+
+      <!-- APPEAL SCREENS -->
+      <section class="screen active" id="appeal-home" data-mode="appeal">
+        <div class="hero-card">
+          <div class="hero-icon">🛡️</div>
+          <h1>Let's get your account reviewed</h1>
+          <p>If you believe your account was frozen by mistake, you can submit an appeal and we'll review it.</p>
+        </div>
+        <div class="menu-card" onclick="showScreen('appeal-reason')">
+          <div class="left"><div class="icon">✎</div><div><div class="label">Tell us what happened</div><div class="sub">Share the reason for your appeal</div></div></div><div>›</div>
+        </div>
+        <div class="menu-card" onclick="showScreen('appeal-docs')">
+          <div class="left"><div class="icon">▣</div><div><div class="label">Upload supporting documents</div><div class="sub">Add ID or other supporting proof</div></div></div><div>›</div>
+        </div>
+        <div class="menu-card">
+          <div class="left"><div class="icon">◷</div><div><div class="label">Review within 5–10 working days</div><div class="sub">We'll email you when there's an update</div></div></div>
+        </div>
+        <div class="notice"><strong>What happens next?</strong><br>Once submitted, your appeal is assigned a ticket number and appears in your appeal tracker.</div>
+        <button class="btn" onclick="showScreen('appeal-reason')">Get started</button>
+      </section>
+
+      <section class="screen" id="appeal-reason" data-mode="appeal">
+        <h1>Tell us what happened</h1>
+        <p class="muted">Help us understand why you believe the account restriction should be reviewed.</p>
+        <div class="field">
+          <label>Appeal reason</label>
+          <select id="reason">
+            <option>I believe my account was frozen by mistake</option>
+            <option>I completed the requested verification</option>
+            <option>I do not recognize the activity that caused the restriction</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tell us more</label>
+          <textarea id="details" placeholder="Add any details that may help us review your appeal...">I believe my account was frozen by mistake. Please review the restriction and the recent activity on my account.</textarea>
+        </div>
+        <div class="notice">Please don't include passwords, PINs, or one-time verification codes.</div>
+        <button class="btn" onclick="showScreen('appeal-docs')">Continue</button>
+      </section>
+
+      <section class="screen" id="appeal-docs" data-mode="appeal">
+        <h1>Upload supporting documents</h1>
+        <p class="muted">Upload clear, unedited photos or PDFs that support your appeal.</p>
+        <div class="chips">
+          <div class="chip">ID Card</div><div class="chip">Passport</div><div class="chip">Driver's License</div><div class="chip">Utility Bill</div>
+        </div>
+        <div class="upload" onclick="document.getElementById('fileInput').click()">
+          <div style="font-size:34px">☁️</div>
+          <strong>Tap to upload or drag and drop</strong>
+          <span class="muted" style="font-size:12px">JPG, PNG or PDF · Max 10MB</span>
+          <input id="fileInput" type="file" multiple style="display:none" onchange="handleFiles(this.files)">
+        </div>
+        <div id="filesArea">
+          <div class="file-row"><div class="file-thumb">🪪</div><div><div class="label">Government ID</div><div class="sub">ID Card · JPG</div></div></div>
+          <div class="file-row"><div class="file-thumb">📄</div><div><div class="label">Utility Bill</div><div class="sub">PDF</div></div></div>
+        </div>
+        <div class="notice">Make sure all information is visible and documents are not expired.</div>
+        <button class="btn" onclick="showScreen('appeal-review')">Continue</button>
+      </section>
+
+      <section class="screen" id="appeal-review" data-mode="appeal">
+        <h1>Review your appeal before submission</h1>
+        <p class="muted">Please check your information and documents before you submit.</p>
+        <div class="card">
+          <div class="review-row"><div><div class="review-k">Appeal reason</div></div><div class="review-v" id="reviewReason">Account frozen by mistake</div></div>
+          <div class="review-row"><div><div class="review-k">Supporting documents</div></div><div class="review-v">2 files attached</div></div>
+          <div class="review-row"><div><div class="review-k">Contact email</div></div><div class="review-v">m••••@email.com</div></div>
+        </div>
+        <div class="notice">We'll review your appeal and get back to you within 5–10 working days.</div>
+        <button class="btn" onclick="submitAppeal()">Submit appeal</button>
+        <button class="btn secondary" onclick="showScreen('appeal-docs')">Edit documents</button>
+      </section>
+
+      <section class="screen" id="appeal-success" data-mode="appeal">
+        <div class="success-wrap">
+          <div class="check">✓</div>
+          <h1>Your appeal has been submitted!</h1>
+          <p>We've received your appeal and are reviewing your information.</p>
+        </div>
+        <div class="card">
+          <div class="review-k">Ticket number</div>
+          <div class="ticket">APP-250515-7821</div>
+          <div class="review-row" style="margin-top:10px"><div class="review-k">Estimated review time</div><div class="review-v">5–10 working days</div></div>
+        </div>
+        <div class="notice">We'll email you once there's an update or a decision has been made.</div>
+        <button class="btn" onclick="setMode('status')">View appeal status</button>
+      </section>
+
+      <!-- STATUS SCREENS -->
+      <section class="screen" id="status-list" data-mode="status">
+        <h1>Your appeals</h1>
+        <p class="muted">Track current and previous appeal requests.</p>
+
+        <div class="menu-card" onclick="showScreen('status-detail')">
+          <div class="left">
+            <div class="icon">🛡️</div>
+            <div>
+              <div class="label">Account freeze appeal</div>
+              <div class="sub">APP-250515-7821 · Submitted May 15, 2026</div>
+              <span class="status-pill">Investigation in progress</span>
+            </div>
+          </div><div>›</div>
+        </div>
+
+        <div class="menu-card">
+          <div class="left">
+            <div class="icon">✓</div>
+            <div>
+              <div class="label">Previous appeal</div>
+              <div class="sub">APP-250214-3910 · Closed Feb 21, 2026</div>
+              <span class="status-pill" style="background:#f0f2f1;color:#555">Completed</span>
+            </div>
+          </div><div>›</div>
+        </div>
+        <button class="btn soft" onclick="setMode('appeal')">File another appeal</button>
+      </section>
+
+      <section class="screen" id="status-detail" data-mode="status">
+        <h1>Appeal status</h1>
+        <p class="muted">Ticket APP-250515-7821</p>
+        <span class="status-pill">Investigation in progress</span>
+
+        <div class="card" style="margin-top:16px">
+          <div class="review-row"><div class="review-k">Appeal type</div><div class="review-v">Account freeze</div></div>
+          <div class="review-row"><div class="review-k">Submitted</div><div class="review-v">May 15, 2026</div></div>
+          <div class="review-row"><div class="review-k">Estimated review time</div><div class="review-v">5–10 working days</div></div>
+        </div>
+
+        <h2 style="margin:22px 4px 8px">Review progress</h2>
+        <div class="timeline">
+          <div class="step done">
+            <div class="dot"></div>
+            <div class="step-title">Appeal submitted</div>
+            <div class="step-meta">May 15, 2026 · 2:18 PM</div>
+          </div>
+          <div class="step done">
+            <div class="dot"></div>
+            <div class="step-title">Review started</div>
+            <div class="step-meta">May 16, 2026 · Your appeal was assigned for investigation.</div>
+          </div>
+          <div class="step current">
+            <div class="dot"></div>
+            <div class="step-title">Investigation in progress</div>
+            <div class="step-meta">We're reviewing your account activity and submitted documents.</div>
+          </div>
+          <div class="step">
+            <div class="dot"></div>
+            <div class="step-title">Investigation complete</div>
+            <div class="step-meta">We'll update this status when our review is complete.</div>
+          </div>
+          <div class="step">
+            <div class="dot"></div>
+            <div class="step-title">Decision available</div>
+            <div class="step-meta">You'll receive an email and can view the result here.</div>
+          </div>
+        </div>
+
+        <div class="notice"><strong>No action needed right now.</strong><br>We'll contact you if we need additional information.</div>
+        <button class="btn secondary" onclick="showScreen('status-list')">Back to all appeals</button>
+      </section>
+
+      <div class="bottomnav">
+        <div class="navitem">▣<br>Shop</div>
+        <div class="navitem">●<br>In-Store</div>
+        <div class="navitem active">◉<br>My Afterpay</div>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <h3>Customer self-service appeal journey</h3>
+      <p>This prototype mirrors the reference app's mint-and-white visual language while adding a full customer-facing appeal submission and post-submission tracking experience.</p>
+
+      <div class="screen-map" id="screenMap">
+        <button class="active" onclick="showScreen('appeal-home')">1. Appeal start</button>
+        <button onclick="showScreen('appeal-reason')">2. Appeal reason</button>
+        <button onclick="showScreen('appeal-docs')">3. Documents</button>
+        <button onclick="showScreen('appeal-review')">4. Review</button>
+        <button onclick="showScreen('appeal-success')">5. Submitted</button>
+        <button onclick="showScreen('status-list')">6. Appeals list</button>
+        <button onclick="showScreen('status-detail')">7. Status tracker</button>
+      </div>
+
+      <div class="flow-list">
+        <div class="flow-item"><div class="num">1</div><div><strong>Start appeal</strong><span>Explain the review process, expected turnaround, and what information the customer will need.</span></div></div>
+        <div class="flow-item"><div class="num">2</div><div><strong>Capture appeal reason</strong><span>Customer selects the closest reason and can add context before proceeding.</span></div></div>
+        <div class="flow-item"><div class="num">3</div><div><strong>Upload evidence</strong><span>Support ID, passport, driver's license, utility bill, and other documentary evidence.</span></div></div>
+        <div class="flow-item"><div class="num">4</div><div><strong>Review and submit</strong><span>Present a final confirmation screen before creating the case.</span></div></div>
+        <div class="flow-item"><div class="num">5</div><div><strong>Ticket confirmation</strong><span>Show the ticket number immediately and confirm that email updates will be sent.</span></div></div>
+        <div class="flow-item"><div class="num">6</div><div><strong>Track the appeal</strong><span>Customers can return to My Afterpay and see all appeals plus a detailed progress timeline.</span></div></div>
+      </div>
+
+      <div class="design-note">
+        <strong>Design language used:</strong> soft mint backgrounds, high-contrast black CTAs, rounded white content cards, generous whitespace, compact explanatory copy, and a single primary task per screen. The status tracker uses the same visual system rather than introducing a separate support-center aesthetic.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const historyStack = [];
+  let currentScreen = 'appeal-home';
+
+  function setMode(mode){
+    document.getElementById('appealModeBtn').classList.toggle('active', mode==='appeal');
+    document.getElementById('statusModeBtn').classList.toggle('active', mode==='status');
+    showScreen(mode==='appeal' ? 'appeal-home' : 'status-list', false);
+  }
+
+  function showScreen(id, push=true){
+    if(push && currentScreen !== id) historyStack.push(currentScreen);
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    const target = document.getElementById(id);
+    target.classList.add('active');
+    currentScreen = id;
+    const mode = target.dataset.mode;
+    document.getElementById('appealModeBtn').classList.toggle('active', mode==='appeal');
+    document.getElementById('statusModeBtn').classList.toggle('active', mode==='status');
+    document.getElementById('appTitle').textContent = mode==='appeal' ? 'Appeal account freeze' : 'Appeal status';
+    document.querySelectorAll('#screenMap button').forEach(b=>b.classList.remove('active'));
+    const labels = {
+      'appeal-home':0,'appeal-reason':1,'appeal-docs':2,'appeal-review':3,'appeal-success':4,'status-list':5,'status-detail':6
+    };
+    const btns = document.querySelectorAll('#screenMap button');
+    if(btns[labels[id]]) btns[labels[id]].classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function goBack(){
+    if(historyStack.length){
+      const prev = historyStack.pop();
+      showScreen(prev,false);
+    } else {
+      showScreen(currentScreen.startsWith('status') ? 'status-list' : 'appeal-home',false);
+    }
+  }
+
+  function submitAppeal(){
+    const reason = document.getElementById('reason').value;
+    document.getElementById('reviewReason').textContent = reason.replace('I believe my ','').replace('I completed the ','');
+    showScreen('appeal-success');
+  }
+
+  function handleFiles(files){
+    const area=document.getElementById('filesArea');
+    area.innerHTML='';
+    [...files].slice(0,4).forEach(f=>{
+      const row=document.createElement('div');
+      row.className='file-row';
+      row.innerHTML=`<div class="file-thumb">📄</div><div><div class="label">${f.name}</div><div class="sub">${Math.max(1,Math.round(f.size/1024))} KB</div></div>`;
+      area.appendChild(row);
+    });
+    if(files.length===0) area.innerHTML='<div class="sub">No files selected.</div>';
+  }
+</script>
+</body>
+</html>

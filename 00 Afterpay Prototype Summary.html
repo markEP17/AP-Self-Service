@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Afterpay Self-Service Innovation Prototypes</title>
+<style>
+:root{--ink:#0b0b0c;--muted:#667085;--line:#e6ebe8;--mint:#b7f7df;--mint2:#e9fbf4;--bg:#f5f8f7}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#b7f7df,#f7fffc);padding:58px 28px 48px;border-bottom:1px solid #dcebe5}
+.wrap{max-width:1180px;margin:auto}
+.brand{font-weight:900;font-size:20px;letter-spacing:-.5px;margin-bottom:34px}
+.eyebrow{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px}
+h1{font-size:48px;line-height:1.02;letter-spacing:-2px;max-width:800px;margin:0 0 18px}
+.hero-copy{max-width:760px;color:#3f4844;font-size:17px;line-height:1.6;margin:0}
+main{padding:34px 28px 60px}
+.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:20px}
+.section-head h3{font-size:24px;margin:0;letter-spacing:-.6px}
+.section-head p{color:var(--muted);font-size:13px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 8px 30px rgba(17,17,17,.05);display:flex;flex-direction:column;min-height:350px}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.number{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#111;color:#fff;font-size:12px;font-weight:900}
+.type{font-size:11px;font-weight:800;background:var(--mint2);padding:7px 10px;border-radius:999px}
+h2{font-size:25px;letter-spacing:-.8px;margin:0 0 10px}
+.card p{font-size:14px;line-height:1.55;color:#4d5551;margin:0 0 14px}
+ul{padding-left:20px;color:#555f5a;font-size:13px;line-height:1.75;margin:0 0 24px}
+.launch{margin-top:auto;text-decoration:none;background:#111;color:#fff;border-radius:12px;padding:14px 16px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:space-between}
+.launch:hover{background:#2b2b2b}
+.note{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:17px 20px;color:#5d6662;font-size:13px;line-height:1.55}
+footer{padding:0 28px 35px;text-align:center;color:#8a928e;font-size:11px}
+@media(max-width:760px){h1{font-size:36px}.grid{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:8px}header{padding-top:38px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">afterpay · self-service innovation</div>
+  <div class="eyebrow">Client proposal prototype suite</div>
+  <h1>Digital self-service journeys designed to reduce avoidable assisted contacts.</h1>
+  <p class="hero-copy">Use this page as the single launch point for the proposed customer and agent experiences. Each prototype opens in a new browser tab so you can return here and continue the walkthrough.</p>
+</div></header>
+<main><div class="wrap">
+  <div class="section-head"><h3>Prototype library</h3><p>4 interactive concepts · click any card to launch</p></div>
+  <div class="grid">
+      <article class="card">
+        <div class="card-top">
+          <div class="number">01</div>
+          <div class="type">Customer experience</div>
+        </div>
+        <h2>2FA New Number Recovery</h2>
+        <p>Customer self-service recovery when an OTP is sent to an old or inaccessible phone number.</p>
+        <ul><li>Login and 2FA verification</li><li>New-number recovery path</li><li>Identity document upload</li><li>24–48 hour review confirmation</li></ul>
+        <a class="launch" href="01A afterpay_2fa_new_number_recovery_prototype.html" target="_blank" rel="noopener">
+          Open prototype <span>↗</span>
+        </a>
+      </article>
+      <article class="card">
+        <div class="card-top">
+          <div class="number">02</div>
+          <div class="type">Agent workflow</div>
+        </div>
+        <h2>2FA Whitelisting Decision Assistant</h2>
+        <p>Agent-facing guided decision workflow for 2FA troubleshooting, mobile-number validation, whitelisting, and ownership exceptions.</p>
+        <ul><li>Customer verification</li><li>Account and mobile validation</li><li>Whitelisting / ownership decisions</li><li>Guided agent actions and case summary</li></ul>
+        <a class="launch" href="01B 2fa_whitelisting_workflow.html" target="_blank" rel="noopener">
+          Open prototype <span>↗</span>
+        </a>
+      </article>
+      <article class="card">
+        <div class="card-top">
+          <div class="number">03</div>
+          <div class="type">Customer experience</div>
+        </div>
+        <h2>Self-Service Account Appeal</h2>
+        <p>Customer-facing account-freeze appeal journey with document submission and appeal-status tracking.</p>
+        <ul><li>Appeal reason capture</li><li>Supporting evidence upload</li><li>Ticket confirmation</li><li>5–10 day review and status tracker</li></ul>
+        <a class="launch" href="02 afterpay_self_service_appeal_prototype.html" target="_blank" rel="noopener">
+          Open prototype <span>↗</span>
+        </a>
+      </article>
+      <article class="card">
+        <div class="card-top">
+          <div class="number">04</div>
+          <div class="type">Customer experience</div>
+        </div>
+        <h2>In-App Transaction Dispute</h2>
+        <p>Self-service dispute journey that starts from a purchase and guides customers through merchant contact, dispute filing, and refund tracking.</p>
+        <ul><li>Purchase selection</li><li>Merchant-first resolution guidance</li><li>Transaction details and evidence</li><li>Dispute ticket and refund status</li></ul>
+        <a class="launch" href="03 afterpay_in_app_dispute_prototype.html" target="_blank" rel="noopener">
+          Open prototype <span>↗</span>
+        </a>
+      </article></div>
+  <div class="note"><strong>How to present:</strong> keep this summary page open during the client discussion. Select <strong>Open prototype</strong> for the journey you want to demonstrate; the prototype opens in a separate tab while this index remains available as your navigation hub.</div>
+</div></main>
+<footer>Interactive concept prototypes for client discussion purposes.</footer>
+</body></html>

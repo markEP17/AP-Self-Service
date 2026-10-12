@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2FA Whitelisting Decision Assistant</title>
+<style>
+  :root{
+    --bg:#f6f7f9;
+    --panel:#ffffff;
+    --ink:#111827;
+    --muted:#667085;
+    --line:#e5e7eb;
+    --brand:#111827;
+    --accent:#00c2a8;
+    --accent-soft:#e9fbf7;
+    --warn:#b54708;
+    --warn-soft:#fff7ed;
+    --danger:#b42318;
+    --danger-soft:#fef3f2;
+    --success:#067647;
+    --success-soft:#ecfdf3;
+    --shadow:0 10px 35px rgba(16,24,40,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  .app{min-height:100vh;display:grid;grid-template-columns:290px 1fr}
+  aside{background:#101828;color:#fff;padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+  .logo{font-weight:800;font-size:20px;letter-spacing:-.02em;margin-bottom:8px}.sub{font-size:13px;line-height:1.5;color:#98a2b3;margin-bottom:28px}
+  .progress-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#98a2b3;margin:18px 0 12px}
+  .step{display:flex;gap:12px;padding:12px;border-radius:12px;margin:6px 0;color:#d0d5dd;align-items:flex-start}
+  .step.active{background:#1d2939;color:#fff}.step.done{color:#a6f4c5}.num{width:24px;height:24px;border:1px solid #475467;border-radius:50%;display:grid;place-items:center;font-size:12px;flex:none}.step.active .num{background:var(--accent);color:#062f2b;border-color:var(--accent)}.step.done .num{border-color:#32d583;color:#32d583}
+  main{padding:36px;max-width:1200px;width:100%;margin:0 auto}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}.eyebrow{font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}.title{font-size:32px;font-weight:800;letter-spacing:-.035em;margin:4px 0 0}.reset{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+  .question{padding:30px}.kicker{display:inline-flex;padding:6px 10px;border-radius:999px;background:var(--accent-soft);color:#087f6d;font-weight:800;font-size:12px;margin-bottom:18px}.question h2{font-size:26px;line-height:1.2;letter-spacing:-.025em;margin:0 0 10px}.question p{color:var(--muted);line-height:1.6;margin:0 0 24px}
+  .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.choice{border:1px solid var(--line);background:#fff;border-radius:14px;padding:18px;text-align:left;cursor:pointer;transition:.15s;min-height:96px}.choice:hover{border-color:#98a2b3;transform:translateY(-1px)}.choice strong{display:block;font-size:16px;margin-bottom:6px}.choice span{color:var(--muted);font-size:13px;line-height:1.45}.choice.primary{border-color:#a6f4e8;background:#f6fffd}
+  .notice{margin-top:22px;padding:16px 18px;border-radius:12px;font-size:14px;line-height:1.55}.notice.info{background:#f2f4f7;color:#344054}.notice.warning{background:var(--warn-soft);color:var(--warn)}.notice.danger{background:var(--danger-soft);color:var(--danger)}.notice.success{background:var(--success-soft);color:var(--success)}
+  .sidecard{padding:22px;position:sticky;top:30px;height:max-content}.sidecard h3{font-size:15px;margin:0 0 15px}.summary-row{padding:12px 0;border-top:1px solid var(--line)}.summary-row:first-of-type{border-top:0}.summary-label{font-size:12px;color:var(--muted);margin-bottom:4px}.summary-value{font-weight:700;font-size:14px}.pending{color:#98a2b3;font-weight:500}.tag{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;font-size:12px;font-weight:800}.tag.good{background:var(--success-soft);color:var(--success)}.tag.bad{background:var(--danger-soft);color:var(--danger)}.tag.wait{background:#f2f4f7;color:#475467}
+  .actionbox{margin-top:18px;padding:16px;border-radius:12px;background:#101828;color:#fff}.actionbox .small{font-size:11px;color:#98a2b3;text-transform:uppercase;letter-spacing:.08em;font-weight:800}.actionbox div:last-child{margin-top:7px;line-height:1.45;font-size:14px}
+  .result{padding:30px}.result-icon{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:26px;margin-bottom:18px}.result.success .result-icon{background:var(--success-soft);color:var(--success)}.result.danger .result-icon{background:var(--danger-soft);color:var(--danger)}.result.warning .result-icon{background:var(--warn-soft);color:var(--warn)}.result h2{font-size:26px;margin:0 0 10px}.result p{color:var(--muted);line-height:1.6}.result ul{line-height:1.8;padding-left:20px}.actions{display:flex;gap:10px;margin-top:24px}.btn{border-radius:10px;padding:11px 15px;font-weight:800;border:1px solid var(--line);background:#fff;cursor:pointer}.btn.dark{background:#111827;color:#fff;border-color:#111827}
+  .crumbs{font-size:12px;color:#98a2b3;margin-bottom:14px}.back{background:none;border:0;color:#475467;font-weight:700;padding:0;cursor:pointer;margin-bottom:14px}.script{margin-top:20px;border:1px dashed #cfd4dc;border-radius:12px;padding:16px;background:#fcfcfd}.script b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#667085;margin-bottom:8px}.script p{margin:0;color:#344054;font-size:14px}
+  @media(max-width:900px){.app{grid-template-columns:1fr}aside{position:relative;height:auto}.grid{grid-template-columns:1fr}.sidecard{position:relative;top:auto}.choices{grid-template-columns:1fr}main{padding:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="logo">2FA Decision Assistant</div>
+    <div class="sub">Guided agent workflow for mobile-number validation, 2FA troubleshooting, whitelisting, and ownership exceptions.</div>
+    <div class="progress-title">Workflow</div>
+    <div id="steps"></div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div><div class="eyebrow">Agent Support Tool</div><div class="title">2FA Whitelisting Workflow</div></div>
+      <button class="reset" onclick="resetFlow()">Reset case</button>
+    </div>
+    <div class="grid">
+      <section id="content" class="card"></section>
+      <aside class="card sidecard" style="background:#fff;color:inherit;height:max-content">
+        <h3>Case summary</h3>
+        <div id="summary"></div>
+        <div class="actionbox"><div class="small">Current agent action</div><div id="currentAction">Verify the customer before proceeding.</div></div>
+      </aside>
+    </div>
+  </main>
+</div>
+<script>
+const state={history:[],answers:{},current:'verify'};
+const stepMap=[
+  ['verify','1','Customer verification'],
+  ['status','2','Account status'],
+  ['mobile','3','Registered mobile'],
+  ['ownership','4','Account ownership']
+];
+
+const nodes={
+  verify:{step:1,title:'Has the customer passed verification?',desc:'Complete the required customer verification checks before making any 2FA or mobile-number changes.',action:'Verify the customer before proceeding.',choices:[
+    ['verified','Customer verified','Proceed to account-status validation.','status'],
+    ['not_verified','Customer not verified','Stop the workflow. No account change can be completed.','stopVerification']
+  ]},
+  status:{step:2,title:'What is the current account status?',desc:'Use the account system of record to confirm whether the account is active or inactive/written off.',action:'Check and record the account status.',choices:[
+    ['active','Active','Proceed to registered mobile number review.','mobile'],
+    ['inactive','Inactive / Written Off','Move to account-ownership verification.','ownership']
+  ]},
+  mobile:{step:3,title:'Is the registered mobile number correct?',desc:'Confirm the number currently registered to the account with the customer.',action:'Compare the registered mobile number against the customer-confirmed number.',choices:[
+    ['correct','Registered mobile number is correct','Check whether this number is linked to multiple accounts.','multiAccount'],
+    ['incorrect','Registered mobile number is incorrect','Collect supporting identity documentation before changing the number.','documents']
+  ]},
+  multiAccount:{step:3,title:'Is the mobile number registered to multiple accounts?',desc:'Search for other accounts linked to the same mobile number.',action:'Check whether the mobile number appears on more than one account.',choices:[
+    ['multiple','Yes — multiple accounts','Proceed to ownership verification for all linked accounts.','ownership'],
+    ['single','No — one account only','Proceed with customer troubleshooting.','troubleshoot']
+  ]},
+  troubleshoot:{step:3,title:'Did the customer receive the 2FA SMS?',desc:'Ask the customer to open the app, reset the password, wait for the SMS, enter the code, and complete the password reset.',action:'Guide the customer through password reset and confirm SMS delivery.',choices:[
+    ['sms_yes','Yes — SMS received','No whitelisting is required. Close the case.','closeSmsSuccess'],
+    ['sms_no','No — SMS not received','Whitelist the mobile number, ask the customer to retry, then close the case.','whitelist']
+  ]},
+  documents:{step:3,title:'Request identity supporting documents',desc:'Ask the customer for either an ID showing date of birth or an acceptable bank statement.',action:'Collect ID with DOB or bank statement and validate it against account records.',choices:[
+    ['doc_valid','Document / DOB is valid','Proceed with changing the mobile number.','changeMobile'],
+    ['doc_invalid','Document / DOB is invalid','Do not change the mobile number.','stopInvalidDoc']
+  ]},
+  ownership:{step:4,title:'Are all linked accounts owned by this customer?',desc:'Verify ownership of every account associated with the mobile number before clearing or reassigning it.',action:'Determine whether all linked accounts belong to the customer.',choices:[
+    ['all_owned','Yes — all accounts are theirs','Close the duplicate account, then continue remediation.','closeDuplicate'],
+    ['not_all_owned','No — another account is not theirs','Request proof of phone-number ownership and freeze the customer account.','phoneBill']
+  ]},
+  phoneBill:{step:4,title:'Has the customer provided a valid phone bill?',desc:'Request proof that the customer owns the mobile number. Keep the account frozen while the proof is being reviewed.',action:'Verify the submitted phone bill as proof of number ownership.',choices:[
+    ['bill_valid','Yes — phone bill verified','Clear the mobile number and ask the customer to reset the password again.','clearNumber'],
+    ['bill_invalid','No — proof not verified','Do not clear the number. Keep the account frozen and follow escalation policy.','stopPhoneBill']
+  ]}
+};
+
+const results={
+  stopVerification:{type:'danger',title:'Stop — verification failed',body:'The customer is not verified, so the 2FA whitelisting or mobile-number process cannot continue.',bullets:['Inform the customer that verification was unsuccessful.','Do not whitelist, clear, or change the mobile number.','Close or disposition the case according to standard policy.'],script:'“I’m sorry, but we’re unable to proceed with changes to the account because we could not complete the required verification.”'},
+  closeSmsSuccess:{type:'success',title:'Close case — SMS received',body:'The customer successfully received the 2FA SMS during password-reset troubleshooting.',bullets:['Customer completes password reset using the SMS code.','No whitelisting action is required.','Close the case with the troubleshooting outcome recorded.']},
+  whitelist:{type:'success',title:'Whitelist the mobile number',body:'The SMS was not received after standard troubleshooting. The agent should whitelist the registered mobile number, ask the customer to retry, and then close the case.',bullets:['Whitelist the mobile number using the approved tool/process.','Ask the customer to retry the password reset and SMS flow.','Record the whitelisting action and close the case.']},
+  changeMobile:{type:'success',title:'Proceed with mobile-number change',body:'The supporting identity document or DOB validation passed.',bullets:['Change the registered mobile number using the approved process.','Confirm the new number with the customer.','Document the evidence used and the completed change.']},
+  stopInvalidDoc:{type:'danger',title:'Stop — supporting document invalid',body:'The submitted ID/DOB or bank statement did not pass validation.',bullets:['Do not change the registered mobile number.','Inform the customer that the submitted verification could not be accepted.','Follow the standard disposition or escalation policy.']},
+  closeDuplicate:{type:'success',title:'Close duplicate account',body:'All accounts linked to the mobile number are owned by the same customer.',bullets:['Close the duplicate account using the approved duplicate-account process.','Retain the correct primary account.','Document the duplicate-account resolution and close the case when complete.']},
+  clearNumber:{type:'success',title:'Clear mobile number and retry password reset',body:'The customer proved ownership of the mobile number using an acceptable phone bill.',bullets:['Clear the mobile number from the conflicting account relationship.','Inform the customer to perform the password-reset flow again.','Record the phone-bill verification and remediation completed.']},
+  stopPhoneBill:{type:'warning',title:'Proof of number ownership not verified',body:'The phone bill did not establish ownership of the mobile number.',bullets:['Do not clear or reassign the mobile number.','Keep the customer account frozen unless policy requires another action.','Escalate or disposition the case according to the applicable ownership-review process.']}
+};
+
+function render(){renderSteps();renderSummary();const n=nodes[state.current];if(n){renderQuestion(n)}else{renderResult(results[state.current])}}
+function renderSteps(){
+  const root=document.getElementById('steps');root.innerHTML='';
+  const currentStep=nodes[state.current]?.step || inferResultStep();
+  stepMap.forEach(([id,num,label])=>{
+    const done = currentStep>Number(num);
+    const active = currentStep===Number(num);
+    root.innerHTML += `<div class="step ${done?'done':''} ${active?'active':''}"><div class="num">${done?'✓':num}</div><div><strong>${label}</strong></div></div>`;
+  })
+}
+function inferResultStep(){
+  const last=state.history[state.history.length-1]; return nodes[last]?.step || 4;
+}
+function renderQuestion(n){
+  document.getElementById('currentAction').textContent=n.action;
+  const content=document.getElementById('content');
+  const back=state.history.length?`<button class="back" onclick="goBack()">← Back</button>`:'';
+  content.className='card question';
+  content.innerHTML=`${back}<div class="crumbs">Step ${n.step} of 4</div><div class="kicker">Decision point</div><h2>${n.title}</h2><p>${n.desc}</p><div class="choices">${n.choices.map(c=>`<button class="choice ${c[0].includes('valid')||c[0]==='verified'||c[0]==='active'?'primary':''}" onclick="choose('${c[0]}','${c[1].replace(/'/g,"\\'")}','${c[3]}')"><strong>${c[1]}</strong><span>${c[2]}</span></button>`).join('')}</div>${contextNote(state.current)}`;
+}
+function contextNote(id){
+  const notes={troubleshoot:'<div class="notice info"><b>Troubleshooting sequence:</b> Open app → Reset password → Wait for SMS → Enter SMS code → Set new password.</div>',documents:'<div class="notice warning"><b>Acceptable support:</b> ID with date of birth or bank statement, subject to your approved verification standard.</div>',phoneBill:'<div class="notice danger"><b>Control:</b> Freeze the customer account while number ownership is unresolved.</div>'};
+  return notes[id]||'';
+}
+function choose(key,label,next){
+  state.history.push(state.current); state.answers[state.current]={key,label}; state.current=next; render();
+}
+function goBack(){
+  if(!state.history.length)return; const prev=state.history.pop(); delete state.answers[prev]; state.current=prev; render();
+}
+function resetFlow(){state.history=[];state.answers={};state.current='verify';render()}
+function renderResult(r){
+  document.getElementById('currentAction').textContent=r.title;
+  const content=document.getElementById('content'); content.className=`card result ${r.type}`;
+  content.innerHTML=`<button class="back" onclick="goBack()">← Back</button><div class="result-icon">${r.type==='success'?'✓':r.type==='danger'?'!':'⚠'}</div><h2>${r.title}</h2><p>${r.body}</p><ul>${r.bullets.map(x=>`<li>${x}</li>`).join('')}</ul>${r.script?`<div class="script"><b>Suggested customer wording</b><p>${r.script}</p></div>`:''}<div class="actions"><button class="btn dark" onclick="resetFlow()">Start new case</button><button class="btn" onclick="window.print()">Print / Save case</button></div>`;
+}
+function renderSummary(){
+  const labels={verify:'Customer verification',status:'Account status',mobile:'Registered mobile',multiAccount:'Multiple accounts',troubleshoot:'SMS received',documents:'Document validation',ownership:'Account ownership',phoneBill:'Phone bill'};
+  const root=document.getElementById('summary');
+  const entries=Object.keys(labels).filter(k=>state.answers[k]);
+  if(!entries.length){root.innerHTML='<div class="summary-row"><div class="summary-value pending">No decisions recorded yet</div></div>';return}
+  root.innerHTML=entries.map(k=>`<div class="summary-row"><div class="summary-label">${labels[k]}</div><div class="summary-value">${state.answers[k].label}</div></div>`).join('');
+}
+render();
+</script>
+</body>
+</html>
